@@ -10,7 +10,8 @@ on:
 
 permissions: 
   security-events: write  # Grant permission to upload SARIF files for Code Scanning 
-  contents: read  # Grant permission to read the contents of the repository 
+  contents: read  # Grant permission to read the contents of the repository
+  actions: read 
 
 jobs: 
   daily_scan: 
