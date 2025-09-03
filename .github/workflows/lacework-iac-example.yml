@@ -3,7 +3,7 @@ name: lacework-iac-example
 # Controls when the workflow will run 
 on: 
   schedule: 
-    - cron: '0 0 * * *'  # Runs every day at midnight UTC 
+    - cron: '0 1 * * *'  # Runs every day at 1 AM UTC 
 
   # Also allow manual triggering of the workflow 
   workflow_dispatch: 
