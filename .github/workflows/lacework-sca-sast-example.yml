@@ -14,7 +14,7 @@ permissions:
   actions: read 
 
 jobs: 
-  daily_scan: 
+  daily_sca_sast_scan: 
     runs-on: ubuntu-latest  # The job runs on the latest Ubuntu environment 
 
     steps: 
