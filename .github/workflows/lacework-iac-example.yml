@@ -1,9 +1,9 @@
-name: Daily SCA Scan on Main Branch 
+name: lacework-iac-example 
 
-# Schedule the workflow to run every 24 hours 
+# Controls when the workflow will run 
 on: 
   schedule: 
-    - cron: '0 0 * * *'  # Runs every day at midnight UTC 
+    - cron: '0 1 * * *'  # Runs every day at 1 AM UTC 
 
   # Also allow manual triggering of the workflow 
   workflow_dispatch: 
@@ -14,7 +14,7 @@ permissions:
   actions: read 
 
 jobs: 
-  daily_sca_sast_scan: 
+  daily_iac_scan: 
     runs-on: ubuntu-latest  # The job runs on the latest Ubuntu environment 
 
     steps: 
@@ -36,13 +36,15 @@ jobs:
           ref: main  # Specify the main branch 
           token: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication 
 
-      # Step 3: Run the Lacework SCA scan on the main branch and generate SARIF output 
+      # Step 3: Run the Lacework IaC scan on the main branch and generate SARIF output 
       - name: Run Lacework SCA Scan on Main Branch 
-        run: lacework sca scan ./ -f sarif -o lacework-scan.sarif 
-        # Scan the main branch code, output in SARIF format, and save to lacework-scan.sarif 
+        run: |
+            env | grep "GITHUB_\|LW_\|CI_" > env.list
+            echo "LW_ACCOUNT=${{ secrets.LW_ACCOUNT }}" >> env.list
+            echo "LW_API_KEY=${{ secrets.LW_API_KEY }}" >> env.list
+            echo "LW_API_SECRET=${{ secrets.LW_API_SECRET }}" >> env.list
+            echo "EXIT_FLAG=CRITICAL=1" >> env.list
+      - name: Scan the repo for vulnerabilities in IaC
+        run: |
+            docker run --env-file env.list -v "$(pwd):/app/src" lacework/codesec:stable lacework iac scan --directory=.
 
-      # Step 4: Upload the SARIF file to GitHub Code Scanning 
-      - name: Upload SARIF to GitHub Code Scanning 
-        uses: github/codeql-action/upload-sarif@v3  # Use the GitHub action to upload SARIF 
-        with: 
-          sarif_file: lacework-scan.sarif  # Path to the SARIF file 
