@@ -1,3 +1,1 @@
 # mpan-cicd-test
-
-asd
