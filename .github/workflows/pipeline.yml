@@ -1,0 +1,80 @@
+name: Lacework Code Security Scan
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+
+  push_scanning:
+    name: Push Scanning
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Starting Lacework SCA scan on push
+        run: echo "Starting Lacework SCA scan on push"
+
+      - name: Run Lacework scan
+        uses: addnab/docker-run-action@v3
+        with:
+          image: lacework/code-security-gitlab:latest
+          options: --rm -v ${{ github.workspace }}:/workspace
+          run: |
+            cd /workspace
+            /app/scan.sh
+
+      - name: Finished Lacework SCA scan on push
+        run: echo "Finished Lacework SCA scan on push"
+
+      - name: Upload Dependency/SAST Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lw-scan-json
+          path: |
+            output-gitlab.json
+          if-no-files-found: ignore
+
+
+
+  merge_request_scanning:
+    name: PR Scanning
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Equivalent to GitLab GIT_DEPTH: 0
+
+      - name: Starting Lacework SCA scan for PR
+        run: echo "Starting Lacework SCA scan for merge request"
+
+      - name: Run Lacework scan
+        uses: addnab/docker-run-action@v3
+        with:
+          image: lacework/code-security-gitlab:latest
+          options: --rm -v ${{ github.workspace }}:/workspace
+          run: |
+            cd /workspace
+            /app/scan.sh
+
+      - name: Finished Lacework SCA scan for PR
+        run: echo "Finished Lacework SCA scan for merge request"
+
+      - name: Upload SARIF Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lw-sarif
+          path: |
+            source.sarif
+            target.sarif
+            comparison.sarif
+          if-no-files-found: ignore
+
