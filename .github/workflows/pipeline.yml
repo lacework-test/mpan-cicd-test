@@ -9,7 +9,7 @@ on:
 jobs:
 
   scanning:
-    name: Scanning
+    name: Mary Scanning
     runs-on: ubuntu-latest
 
     steps:
