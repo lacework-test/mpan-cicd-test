@@ -1,0 +1,39 @@
+name: Mary Lacework Code Security Scan
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+
+  scanning:
+    name: Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Lacework CLI
+        run: |
+          # Download and install the Lacework CLI using a shell script
+
+          curl https://raw.githubusercontent.com/lacework/go-sdk/main/cli/install.sh | bash
+          # Configure the Lacework CLI with account, API key, and secret from GitHub secrets
+          lacework configure -a ${{ secrets.LW_ACCOUNT }}.lacework.net -k ${{ secrets.LW_API_KEY }} -s ${{ secrets.LW_API_SECRET }} --noninteractive
+          # Install the Software Composition Analysis (SCA) component
+          lacework component install sca
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Starting Lacework SCA scan on push
+        run: echo "Starting Lacework SCA scan on push"
+
+      - name: Run Lacework scan
+        run: lacework sca scan ./ -f sarif -o lacework-scan.sarif
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3  # Use the GitHub action to upload SARIF
+        with:
+            sarif_file: lacework-scan.sarif  # Path to the SARIF file
+
